@@ -42,7 +42,7 @@ unset($_SESSION["order_success"]);
         <h2 class="mt-3">Order Placed Successfully!</h2>
 
         <p class="text-muted">
-            Thank you for ordering from FoodieHub. Your order has been received.
+            Thank you for ordering from ProductHub. Your order has been received.
         </p>
 
     </div>

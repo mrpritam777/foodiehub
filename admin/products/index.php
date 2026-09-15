@@ -1,7 +1,7 @@
 <?php
 
-$pageTitle = "Food Management";
-$activePage = "foods";
+$pageTitle = "Product Management";
+$activePage = "products";
 
 require_once __DIR__ . "/../../includes/admin_header.php";
 require_once __DIR__ . "/../../includes/functions.php";
@@ -20,6 +20,7 @@ $sql = "
         foods.description,
         foods.image,
         foods.status,
+        foods.stock,
         foods.created_at,
         categories.category_name
     FROM foods
@@ -79,15 +80,15 @@ unset($_SESSION["success"], $_SESSION["error"]);
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
 
                 <div>
-                    <h3 class="mb-1">Food Management</h3>
+                    <h3 class="mb-1">Product Management</h3>
                     <p class="text-muted mb-0">
-                        Add, update and manage food items.
+                        Add, update stock and manage products.
                     </p>
                 </div>
 
                 <a href="create.php" class="btn btn-primary">
                     <i class="fa-solid fa-plus me-1"></i>
-                    Add Food
+                    Add Product
                 </a>
 
             </div>
@@ -136,13 +137,13 @@ unset($_SESSION["success"], $_SESSION["error"]);
 
                         <div class="col-lg-4 col-md-6">
 
-                            <label class="form-label">Search Food</label>
+                            <label class="form-label">Search Product</label>
 
                             <input
                                 type="text"
                                 name="search"
                                 class="form-control"
-                                placeholder="Search by food name"
+                                placeholder="Search by product name"
                                 value="<?= htmlspecialchars($search) ?>"
                             >
 
@@ -228,11 +229,12 @@ unset($_SESSION["success"], $_SESSION["error"]);
                                 <tr>
                                     <th>SL</th>
                                     <th>Image</th>
-                                    <th>Food Name</th>
+                                    <th>Product Name</th>
                                     <th>Category</th>
                                     <th>Price</th>
+                                    <th>Stock</th>
                                     <th>Status</th>
-                                    <th width="150">Action</th>
+                                    <th width="170">Action</th>
                                 </tr>
 
                             </thead>
@@ -252,7 +254,7 @@ unset($_SESSION["success"], $_SESSION["error"]);
                                                 <?php if (!empty($food["image"])): ?>
 
                                                     <img
-                                                        src="../../uploads/foods/<?= htmlspecialchars($food["image"]) ?>"
+                                                        src="../../uploads/products/<?= htmlspecialchars($food["image"]) ?>"
                                                         alt="<?= htmlspecialchars($food["food_name"]) ?>"
                                                         width="70"
                                                         height="55"
@@ -288,6 +290,24 @@ unset($_SESSION["success"], $_SESSION["error"]);
 
                                             <td>
 
+                                                <?php if ((int) $food["stock"] < 1): ?>
+
+                                                    <span class="badge text-bg-danger">0 — Out of Stock</span>
+
+                                                <?php elseif ((int) $food["stock"] <= 5): ?>
+
+                                                    <span class="badge text-bg-warning"><?= (int) $food["stock"] ?> — Low</span>
+
+                                                <?php else: ?>
+
+                                                    <span class="badge text-bg-success"><?= (int) $food["stock"] ?></span>
+
+                                                <?php endif; ?>
+
+                                            </td>
+
+                                            <td>
+
                                                 <?php if ($food["status"] === "Available"): ?>
 
                                                     <span class="badge text-bg-success">
@@ -306,10 +326,20 @@ unset($_SESSION["success"], $_SESSION["error"]);
 
                                             <td>
 
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-success btn-sm"
+                                                    title="Increase Stock"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#restockModal<?= (int) $food["id"] ?>"
+                                                >
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </button>
+
                                                 <a
                                                     href="edit.php?id=<?= (int) $food["id"] ?>"
                                                     class="btn btn-warning btn-sm"
-                                                    title="Edit Food"
+                                                    title="Edit Product"
                                                 >
                                                     <i class="fa-solid fa-pen-to-square"></i>
                                                 </a>
@@ -318,7 +348,7 @@ unset($_SESSION["success"], $_SESSION["error"]);
                                                     action="delete.php"
                                                     method="POST"
                                                     class="d-inline"
-                                                    onsubmit="return confirm('Delete this food item?')"
+                                                    onsubmit="return confirm('Delete this product?')"
                                                 >
 
                                                     <input
@@ -336,12 +366,91 @@ unset($_SESSION["success"], $_SESSION["error"]);
                                                     <button
                                                         type="submit"
                                                         class="btn btn-danger btn-sm"
-                                                        title="Delete Food"
+                                                        title="Delete Product"
                                                     >
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
 
                                                 </form>
+
+                                                <!-- Increase stock modal -->
+                                                <div class="modal fade" id="restockModal<?= (int) $food["id"] ?>" tabindex="-1" aria-hidden="true">
+
+                                                    <div class="modal-dialog modal-sm modal-dialog-centered">
+
+                                                        <div class="modal-content">
+
+                                                            <form action="add_stock.php" method="POST">
+
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="csrf_token"
+                                                                    value="<?= htmlspecialchars(generateCsrfToken()) ?>"
+                                                                >
+
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="id"
+                                                                    value="<?= (int) $food["id"] ?>"
+                                                                >
+
+                                                                <div class="modal-header py-2">
+
+                                                                    <h6 class="modal-title">
+                                                                        <i class="fa-solid fa-boxes-stacked me-1"></i>
+                                                                        Increase Stock
+                                                                    </h6>
+
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                                                                </div>
+
+                                                                <div class="modal-body">
+
+                                                                    <p class="mb-2">
+                                                                        <strong><?= htmlspecialchars($food["food_name"]) ?></strong><br>
+                                                                        <small class="text-muted">
+                                                                            Current stock: <?= (int) $food["stock"] ?>
+                                                                        </small>
+                                                                    </p>
+
+                                                                    <label class="form-label">
+                                                                        Add quantity
+                                                                        <span class="text-danger">*</span>
+                                                                    </label>
+
+                                                                    <input
+                                                                        type="number"
+                                                                        name="add_quantity"
+                                                                        class="form-control"
+                                                                        min="1"
+                                                                        max="999999"
+                                                                        value="10"
+                                                                        required
+                                                                    >
+
+                                                                </div>
+
+                                                                <div class="modal-footer py-2">
+
+                                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                                                        Cancel
+                                                                    </button>
+
+                                                                    <button type="submit" class="btn btn-success">
+                                                                        <i class="fa-solid fa-plus me-1"></i>
+                                                                        Add Stock
+                                                                    </button>
+
+                                                                </div>
+
+                                                            </form>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
 
                                             </td>
 
@@ -353,12 +462,12 @@ unset($_SESSION["success"], $_SESSION["error"]);
 
                                     <tr>
 
-                                        <td colspan="7" class="text-center py-5">
+                                        <td colspan="8" class="text-center py-5">
 
-                                            <i class="fa-solid fa-burger fa-2x text-muted mb-3"></i>
+                                            <i class="fa-solid fa-box-open fa-2x text-muted mb-3"></i>
 
                                             <p class="text-muted mb-0">
-                                                No food items found.
+                                                No products found.
                                             </p>
 
                                         </td>

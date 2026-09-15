@@ -1,7 +1,7 @@
 <?php
 
-$pageTitle = "Add Food Item";
-$activePage = "foods";
+$pageTitle = "Add Product";
+$activePage = "products";
 
 require_once __DIR__ . "/../../includes/admin_header.php";
 require_once __DIR__ . "/../../includes/functions.php";
@@ -39,9 +39,9 @@ unset($_SESSION["food_old"], $_SESSION["error"]);
                     <div class="d-flex justify-content-between align-items-center mb-4">
 
                         <div>
-                            <h3 class="mb-1">Add Food Item</h3>
+                            <h3 class="mb-1">Add Product</h3>
                             <p class="text-muted mb-0">
-                                Add a new food item to the menu.
+                                Add a new product to the store.
                             </p>
                         </div>
 
@@ -77,7 +77,7 @@ unset($_SESSION["food_old"], $_SESSION["error"]);
 
                         <div class="alert alert-warning">
 
-                            Food add করার আগে কমপক্ষে একটি Category তৈরি করতে হবে।
+                          
 
                             <a href="../categories/create.php" class="alert-link">
                                 Add Category
@@ -108,7 +108,7 @@ unset($_SESSION["food_old"], $_SESSION["error"]);
                                     <div class="col-md-6">
 
                                         <label for="food_name" class="form-label fw-semibold">
-                                            Food Name
+                                            Product Name
                                             <span class="text-danger">*</span>
                                         </label>
 
@@ -187,6 +187,32 @@ unset($_SESSION["food_old"], $_SESSION["error"]);
 
                                     <div class="col-md-6">
 
+                                        <label for="stock" class="form-label fw-semibold">
+                                            Stock Quantity
+                                            <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="stock"
+                                            id="stock"
+                                            class="form-control"
+                                            min="0"
+                                            max="999999"
+                                            step="1"
+                                            placeholder="Example: 10"
+                                            value="<?= htmlspecialchars($old["stock"] ?? "") ?>"
+                                            required
+                                        >
+
+                                        <div class="form-text">
+                                            
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
                                         <label for="status" class="form-label fw-semibold">
                                             Availability
                                             <span class="text-danger">*</span>
@@ -233,7 +259,7 @@ unset($_SESSION["food_old"], $_SESSION["error"]);
                                             class="form-control"
                                             rows="5"
                                             maxlength="2000"
-                                            placeholder="Write food description..."
+                                            placeholder="Write product description..."
                                         ><?= htmlspecialchars($old["description"] ?? "") ?></textarea>
 
                                     </div>
@@ -241,7 +267,7 @@ unset($_SESSION["food_old"], $_SESSION["error"]);
                                     <div class="col-12">
 
                                         <label for="image" class="form-label fw-semibold">
-                                            Food Image
+                                            Product Image
                                         </label>
 
                                         <input
@@ -266,7 +292,7 @@ unset($_SESSION["food_old"], $_SESSION["error"]);
                                             <?= count($categories) === 0 ? "disabled" : "" ?>
                                         >
                                             <i class="fa-solid fa-floppy-disk me-1"></i>
-                                            Save Food
+                                            Save Product
                                         </button>
 
                                         <a

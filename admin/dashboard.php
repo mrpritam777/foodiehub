@@ -13,6 +13,21 @@ $totalUsers = $conn->query("SELECT COUNT(*) FROM users WHERE role='user'")->fetc
 
 $totalOrders = $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn();
 
+// Stock overview
+$outOfStockCount = (int) $conn->query("SELECT COUNT(*) FROM foods WHERE stock = 0")->fetchColumn();
+
+$lowStockCount = (int) $conn->query("SELECT COUNT(*) FROM foods WHERE stock > 0 AND stock <= 5")->fetchColumn();
+
+$lowStockStatement = $conn->query(
+    "SELECT food_name, stock
+     FROM foods
+     WHERE stock <= 5
+     ORDER BY stock ASC, food_name ASC
+     LIMIT 5"
+);
+
+$lowStockProducts = $lowStockStatement->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <div class="d-flex">
@@ -35,7 +50,7 @@ $totalOrders = $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn();
 
                             <h2><?= $totalFoods ?></h2>
 
-                            <p>Total Foods</p>
+                            <p>Total Products</p>
 
                         </div>
 
@@ -84,6 +99,92 @@ $totalOrders = $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn();
                             <h2><?= $totalOrders ?></h2>
 
                             <p>Total Orders</p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="row mt-4">
+
+                <div class="col-md-3">
+
+                    <div class="card bg-dark text-white shadow">
+
+                        <div class="card-body">
+
+                            <h2><?= $outOfStockCount ?></h2>
+
+                            <p><i class="fa-solid fa-box-open me-1"></i>Out of Stock Products</p>
+
+                            <a href="products/index.php" class="stretched-link"></a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card bg-info text-white shadow">
+
+                        <div class="card-body">
+
+                            <h2><?= $lowStockCount ?></h2>
+
+                            <p><i class="fa-solid fa-boxes-stacked me-1"></i>Low Stock Products (1-5)</p>
+
+                            <a href="products/index.php" class="stretched-link"></a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <div class="card shadow">
+
+                        <div class="card-header bg-white">
+
+                            <h6 class="mb-0">
+                                <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>
+                                Low / Out of Stock Products
+                            </h6>
+
+                        </div>
+
+                        <div class="card-body py-2">
+
+                            <?php if (count($lowStockProducts) > 0): ?>
+
+                                <?php foreach ($lowStockProducts as $product): ?>
+
+                                    <div class="d-flex justify-content-between border-bottom py-2">
+
+                                        <span><?= htmlspecialchars($product["food_name"]) ?></span>
+
+                                        <span class="badge <?= (int) $product["stock"] === 0 ? "text-bg-danger" : "text-bg-warning" ?>">
+                                            Stock: <?= (int) $product["stock"] ?>
+                                        </span>
+
+                                    </div>
+
+                                <?php endforeach; ?>
+
+                            <?php else: ?>
+
+                                <p class="text-muted mb-0 py-2">
+                                    <i class="fa-solid fa-circle-check text-success me-1"></i>
+                                    All products have healthy stock.
+                                </p>
+
+                            <?php endif; ?>
 
                         </div>
 

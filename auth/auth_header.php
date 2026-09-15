@@ -23,7 +23,7 @@ if (isset($_SESSION["admin_id"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= htmlspecialchars($pageTitle ?? "FoodieHub") ?></title>
+    <title><?= htmlspecialchars($pageTitle ?? "ProductHub") ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -65,11 +65,11 @@ if (isset($_SESSION["admin_id"])) {
 
                 <div class="text-center mb-4">
 
-                    <img src="<?= BASE_URL ?>/assets/images/logo.png" alt="FoodieHub" height="70" class="mx-auto mb-3">
+                    <img src="<?= BASE_URL ?>/assets/images/logo.svg" alt="ProductHub" height="70" class="mx-auto mb-3">
 
-                    <h2 class="text-white auth-logo">FoodieHub</h2>
+                    <h2 class="text-white auth-logo">ProductHub</h2>
 
-                    <p class="text-white-50 mb-0">Order your favorite food online</p>
+                    <p class="text-white-50 mb-0">Order your favorite products online</p>
 
                 </div>
 

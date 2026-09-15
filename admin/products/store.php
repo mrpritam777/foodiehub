@@ -18,6 +18,7 @@ if (!verifyCsrfToken($csrfToken)) {
 $foodName = trim($_POST["food_name"] ?? "");
 $categoryId = filter_input(INPUT_POST, "category_id", FILTER_VALIDATE_INT);
 $priceInput = trim($_POST["price"] ?? "");
+$stockInput = trim($_POST["stock"] ?? "");
 $description = trim($_POST["description"] ?? "");
 $status = trim($_POST["status"] ?? "");
 
@@ -25,6 +26,7 @@ $_SESSION["food_old"] = [
     "food_name" => $foodName,
     "category_id" => $categoryId,
     "price" => $priceInput,
+    "stock" => $stockInput,
     "description" => $description,
     "status" => $status
 ];
@@ -32,13 +34,13 @@ $_SESSION["food_old"] = [
 $allowedStatuses = ["Available", "Unavailable"];
 
 if ($foodName === "") {
-    $_SESSION["error"] = "Food name is required.";
+    $_SESSION["error"] = "Product name is required.";
     header("Location: create.php");
     exit;
 }
 
 if (mb_strlen($foodName) < 2 || mb_strlen($foodName) > 150) {
-    $_SESSION["error"] = "Food name must contain between 2 and 150 characters.";
+    $_SESSION["error"] = "Product name must contain between 2 and 150 characters.";
     header("Location: create.php");
     exit;
 }
@@ -54,12 +56,24 @@ if (
     !is_numeric($priceInput) ||
     (float) $priceInput < 0
 ) {
-    $_SESSION["error"] = "Please enter a valid food price.";
+    $_SESSION["error"] = "Please enter a valid product price.";
     header("Location: create.php");
     exit;
 }
 
 $price = round((float) $priceInput, 2);
+
+if (
+    $stockInput === "" ||
+    !preg_match("/^\d+$/", $stockInput) ||
+    (int) $stockInput > 999999
+) {
+    $_SESSION["error"] = "Please enter a valid stock quantity (0 - 999999).";
+    header("Location: create.php");
+    exit;
+}
+
+$stock = (int) $stockInput;
 
 if (!in_array($status, $allowedStatuses, true)) {
     $_SESSION["error"] = "Please select a valid availability status.";
@@ -99,7 +113,7 @@ if (
     $image = $_FILES["image"];
 
     if ($image["error"] !== UPLOAD_ERR_OK) {
-        $_SESSION["error"] = "Food image upload failed.";
+        $_SESSION["error"] = "Product image upload failed.";
         header("Location: create.php");
         exit;
     }
@@ -107,7 +121,7 @@ if (
     $maxFileSize = 2 * 1024 * 1024;
 
     if ($image["size"] > $maxFileSize) {
-        $_SESSION["error"] = "Food image size cannot exceed 2 MB.";
+        $_SESSION["error"] = "Product image size cannot exceed 2 MB.";
         header("Location: create.php");
         exit;
     }
@@ -129,9 +143,9 @@ if (
 
     $extension = $allowedMimeTypes[$mimeType];
 
-    $imageName = "food_" . bin2hex(random_bytes(12)) . "." . $extension;
+    $imageName = "product_" . bin2hex(random_bytes(12)) . "." . $extension;
 
-    $uploadDirectory = __DIR__ . "/../../uploads/foods/";
+    $uploadDirectory = __DIR__ . "/../../uploads/products/";
 
     if (!is_dir($uploadDirectory)) {
         if (!mkdir($uploadDirectory, 0755, true)) {
@@ -157,6 +171,7 @@ try {
             category_id,
             food_name,
             price,
+            stock,
             description,
             image,
             status
@@ -164,6 +179,7 @@ try {
             :category_id,
             :food_name,
             :price,
+            :stock,
             :description,
             :image,
             :status
@@ -174,6 +190,7 @@ try {
         ":category_id" => $categoryId,
         ":food_name" => $foodName,
         ":price" => $price,
+        ":stock" => $stock,
         ":description" => $description !== "" ? $description : null,
         ":image" => $imageName,
         ":status" => $status
@@ -181,7 +198,7 @@ try {
 
     unset($_SESSION["food_old"]);
 
-    $_SESSION["success"] = "Food item added successfully.";
+    $_SESSION["success"] = "Product added successfully.";
 
     header("Location: index.php");
     exit;
@@ -189,7 +206,7 @@ try {
 } catch (PDOException $exception) {
 
     if ($imageName !== null) {
-        $uploadedImage = __DIR__ . "/../../uploads/foods/" . $imageName;
+        $uploadedImage = __DIR__ . "/../../uploads/products/" . $imageName;
 
         if (is_file($uploadedImage)) {
             unlink($uploadedImage);
@@ -198,7 +215,7 @@ try {
 
     error_log($exception->getMessage());
 
-    $_SESSION["error"] = "Unable to add food item. Please try again.";
+    $_SESSION["error"] = "Unable to add product. Please try again.";
 
     header("Location: create.php");
     exit;

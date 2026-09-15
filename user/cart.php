@@ -11,7 +11,8 @@ $stmt = $conn->prepare(
          foods.food_name,
          foods.price,
          foods.image,
-         foods.status
+         foods.status,
+         foods.stock
      FROM cart
      INNER JOIN foods ON foods.id = cart.food_id
      WHERE cart.user_id = :user_id
@@ -23,13 +24,20 @@ $stmt->execute([":user_id" => (int) $_SESSION["user_id"]]);
 $cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $totalAmount = 0.0;
+$hasStockIssue = false;
 
 foreach ($cartItems as $item) {
     $totalAmount += (float) $item["price"] * (int) $item["quantity"];
+
+    // Not enough stock (product unavailable or quantity above the stock)
+    if ($item["status"] !== "Available" || (int) $item["stock"] < 1 || (int) $item["quantity"] > (int) $item["stock"]) {
+        $hasStockIssue = true;
+    }
 }
 
 $flash = $_SESSION["flash"] ?? "";
-unset($_SESSION["flash"]);
+$errorMessage = $_SESSION["error"] ?? "";
+unset($_SESSION["flash"], $_SESSION["error"]);
 ?>
 
 <div class="container py-4">
@@ -40,6 +48,32 @@ unset($_SESSION["flash"]);
 
             <i class="fa-solid fa-circle-check me-1"></i>
             <?= htmlspecialchars($flash) ?>
+
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+        </div>
+
+    <?php endif; ?>
+
+    <?php if ($errorMessage !== ""): ?>
+
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-exclamation me-1"></i>
+            <?= htmlspecialchars($errorMessage) ?>
+
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+        </div>
+
+    <?php endif; ?>
+
+    <?php if ($hasStockIssue): ?>
+
+        <div class="alert alert-warning alert-dismissible fade show">
+
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+            Some products in your cart do not have enough stock. Reduce the quantity or remove those products before checkout.
 
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
@@ -89,7 +123,7 @@ unset($_SESSION["flash"]);
                                         <td>
                                             <?php if (!empty($item["image"])): ?>
                                                 <img
-                                                    src="../uploads/foods/<?= htmlspecialchars($item["image"]) ?>"
+                                                    src="../uploads/products/<?= htmlspecialchars($item["image"]) ?>"
                                                     alt="<?= htmlspecialchars($item["food_name"]) ?>"
                                                     width="60"
                                                     height="50"
@@ -106,12 +140,19 @@ unset($_SESSION["flash"]);
                                             <strong><?= htmlspecialchars($item["food_name"]) ?></strong>
                                             <?php if ($item["status"] === "Unavailable"): ?>
                                                 <br><span class="badge text-bg-warning">Currently Unavailable</span>
+                                            <?php elseif ((int) $item["stock"] < 1): ?>
+                                                <br><span class="badge text-bg-danger">Out of Stock</span>
+                                            <?php elseif ((int) $item["quantity"] > (int) $item["stock"]): ?>
+                                                <br><span class="badge text-bg-warning">Only <?= (int) $item["stock"] ?> in stock</span>
                                             <?php endif; ?>
                                         </td>
 
                                         <td>₹<?= number_format((float) $item["price"], 2) ?></td>
 
                                         <td>
+                                            <small class="text-muted d-block mb-1">
+                                                In stock: <?= (int) $item["stock"] ?>
+                                            </small>
 
                                             <form action="update_cart.php" method="POST" class="d-flex align-items-center gap-1">
 
@@ -125,7 +166,7 @@ unset($_SESSION["flash"]);
                                                     class="form-control form-control-sm qty-input"
                                                     value="<?= (int) $item["quantity"] ?>"
                                                     min="1"
-                                                    max="99"
+                                                    max="<?= max((int) $item["stock"], 1) ?>"
                                                 >
 
                                                 <button type="submit" class="btn btn-sm btn-outline-primary" title="Update">
@@ -194,9 +235,24 @@ unset($_SESSION["flash"]);
 
                         <hr>
 
-                        <a href="checkout.php" class="btn btn-danger w-100">
-                            <i class="fa-solid fa-cash-register me-1"></i>Proceed to Checkout
-                        </a>
+                        <?php if ($hasStockIssue): ?>
+
+                            <button type="button" class="btn btn-secondary w-100 mb-2" disabled title="Not enough stock">
+                                <i class="fa-solid fa-ban me-1"></i>Checkout Blocked (Stock Issue)
+                            </button>
+
+                            <small class="text-danger d-block mb-2">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i>
+                                Order is not possible while the cart exceeds the available stock.
+                            </small>
+
+                        <?php else: ?>
+
+                            <a href="checkout.php" class="btn btn-danger w-100">
+                                <i class="fa-solid fa-cash-register me-1"></i>Proceed to Checkout
+                            </a>
+
+                        <?php endif; ?>
 
                     </div>
 
@@ -216,7 +272,7 @@ unset($_SESSION["flash"]);
 
                 <h5>Your cart is empty</h5>
 
-                <p class="text-muted">Browse the menu and add your favorite dishes.</p>
+                <p class="text-muted">Browse the products and add them to your cart.</p>
 
                 <a href="index.php" class="btn btn-danger">Browse Menu</a>
 

@@ -94,15 +94,18 @@ try {
 
     $conn->beginTransaction();
 
-    // Lock the user's cart (only available items)
+    // Lock the user's cart items together with their products (FOR UPDATE)
     $cartStatement = $conn->prepare(
         "SELECT
              cart.id      AS cart_id,
              cart.quantity,
              foods.id      AS food_id,
-             foods.price
+             foods.food_name,
+             foods.price,
+             foods.status,
+             foods.stock
          FROM cart
-         INNER JOIN foods ON foods.id = cart.food_id AND foods.status = 'Available'
+         INNER JOIN foods ON foods.id = cart.food_id
          WHERE cart.user_id = :user_id
          FOR UPDATE"
     );
@@ -116,6 +119,25 @@ try {
         $_SESSION["flash"] = "Your cart is empty.";
         header("Location: cart.php");
         exit;
+    }
+
+    // Stock check: the order will NOT be placed if any product
+    // is unavailable or has less stock than the requested quantity.
+    foreach ($cartItems as $item) {
+
+        if ($item["status"] !== "Available") {
+            $conn->rollBack();
+            $_SESSION["error"] = "Order not placed: \"" . $item["food_name"] . "\" is currently unavailable. Please remove it from your cart.";
+            header("Location: cart.php");
+            exit;
+        }
+
+        if ((int) $item["stock"] < (int) $item["quantity"]) {
+            $conn->rollBack();
+            $_SESSION["error"] = "Order not placed: \"" . $item["food_name"] . "\" has only " . (int) $item["stock"] . " unit(s) in stock, but you requested " . (int) $item["quantity"] . ". Please reduce the quantity.";
+            header("Location: cart.php");
+            exit;
+        }
     }
 
     $subtotal = 0.0;
@@ -175,18 +197,30 @@ try {
 
     $orderId = (int) $conn->lastInsertId();
 
-    // Insert order items
+    // Insert order items and reduce the product stock
     $itemStatement = $conn->prepare(
         "INSERT INTO order_items (order_id, food_id, quantity, price)
          VALUES (:order_id, :food_id, :quantity, :price)"
     );
 
+    $stockStatement = $conn->prepare(
+        "UPDATE foods
+         SET stock = stock - :quantity
+         WHERE id = :food_id"
+    );
+
     foreach ($cartItems as $item) {
+
         $itemStatement->execute([
             ":order_id" => $orderId,
             ":food_id" => (int) $item["food_id"],
             ":quantity" => (int) $item["quantity"],
             ":price" => (float) $item["price"]
+        ]);
+
+        $stockStatement->execute([
+            ":quantity" => (int) $item["quantity"],
+            ":food_id" => (int) $item["food_id"]
         ]);
     }
 

@@ -1,7 +1,7 @@
 <?php
 
-$pageTitle = "Edit Food Item";
-$activePage = "foods";
+$pageTitle = "Edit Product";
+$activePage = "products";
 
 require_once __DIR__ . "/../../includes/admin_header.php";
 require_once __DIR__ . "/../../includes/functions.php";
@@ -9,13 +9,13 @@ require_once __DIR__ . "/../../includes/functions.php";
 $id = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
 
 if (!$id) {
-    $_SESSION["error"] = "Invalid food ID.";
+    $_SESSION["error"] = "Invalid product ID.";
     header("Location: index.php");
     exit;
 }
 
 $foodStatement = $conn->prepare(
-    "SELECT id, category_id, food_name, price, description, image, status
+    "SELECT id, category_id, food_name, price, stock, description, image, status
      FROM foods
      WHERE id = :id
      LIMIT 1"
@@ -28,7 +28,7 @@ $foodStatement->execute([
 $food = $foodStatement->fetch(PDO::FETCH_ASSOC);
 
 if (!$food) {
-    $_SESSION["error"] = "Food item not found.";
+    $_SESSION["error"] = "Product not found.";
     header("Location: index.php");
     exit;
 }
@@ -56,6 +56,7 @@ unset(
 $foodName = $old["food_name"] ?? $food["food_name"];
 $categoryId = $old["category_id"] ?? $food["category_id"];
 $price = $old["price"] ?? $food["price"];
+$stock = $old["stock"] ?? $food["stock"];
 $description = $old["description"] ?? $food["description"];
 $status = $old["status"] ?? $food["status"];
 ?>
@@ -77,9 +78,9 @@ $status = $old["status"] ?? $food["status"];
                     <div class="d-flex justify-content-between align-items-center mb-4">
 
                         <div>
-                            <h3 class="mb-1">Edit Food Item</h3>
+                            <h3 class="mb-1">Edit Product</h3>
                             <p class="text-muted mb-0">
-                                Update food details and availability.
+                                Update product details, stock and availability.
                             </p>
                         </div>
 
@@ -143,7 +144,7 @@ $status = $old["status"] ?? $food["status"];
                                     <div class="col-md-6">
 
                                         <label for="food_name" class="form-label fw-semibold">
-                                            Food Name <span class="text-danger">*</span>
+                                            Product Name <span class="text-danger">*</span>
                                         </label>
 
                                         <input
@@ -212,6 +213,26 @@ $status = $old["status"] ?? $food["status"];
 
                                     <div class="col-md-6">
 
+                                        <label for="stock" class="form-label fw-semibold">
+                                            Stock Quantity <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="stock"
+                                            id="stock"
+                                            class="form-control"
+                                            min="0"
+                                            max="999999"
+                                            step="1"
+                                            value="<?= htmlspecialchars($stock) ?>"
+                                            required
+                                        >
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
                                         <label for="status" class="form-label fw-semibold">
                                             Availability <span class="text-danger">*</span>
                                         </label>
@@ -255,14 +276,14 @@ $status = $old["status"] ?? $food["status"];
 
                                     <div class="col-12">
 
-                                        <label for="image" class="form-label fw-semibold">Food Image</label>
+                                        <label for="image" class="form-label fw-semibold">Product Image</label>
 
                                         <?php if (!empty($food["image"])): ?>
 
                                             <div class="mb-2">
 
                                                 <img
-                                                    src="../../uploads/foods/<?= htmlspecialchars($food["image"]) ?>"
+                                                    src="../../uploads/products/<?= htmlspecialchars($food["image"]) ?>"
                                                     alt="<?= htmlspecialchars($food["food_name"]) ?>"
                                                     width="120"
                                                     height="90"
@@ -307,7 +328,7 @@ $status = $old["status"] ?? $food["status"];
 
                                         <button type="submit" class="btn btn-primary px-4">
                                             <i class="fa-solid fa-pen-to-square me-1"></i>
-                                            Update Food
+                                            Update Product
                                         </button>
 
                                         <a href="index.php" class="btn btn-light border px-4">

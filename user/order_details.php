@@ -222,7 +222,7 @@ $bg = match ($order["status"]) {
                         <thead class="table-light">
                             <tr>
                                 <th>Item</th>
-                                <th>Food</th>
+                                <th>Product</th>
                                 <th>Qty</th>
                                 <th class="text-end">Price</th>
                                 <th class="text-end">Total</th>
@@ -238,7 +238,7 @@ $bg = match ($order["status"]) {
                                     <td>
                                         <?php if (!empty($item["image"])): ?>
                                             <img
-                                                src="../uploads/foods/<?= htmlspecialchars($item["image"]) ?>"
+                                                src="../uploads/products/<?= htmlspecialchars($item["image"]) ?>"
                                                 alt="<?= htmlspecialchars($item["food_name"]) ?>"
                                                 width="60"
                                                 height="50"

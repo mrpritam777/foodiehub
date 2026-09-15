@@ -14,7 +14,7 @@ $isLoggedIn = isset($_SESSION["user_id"]);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FoodieHub</title>
+    <title>Product Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -26,14 +26,14 @@ $isLoggedIn = isset($_SESSION["user_id"]);
             font-size: 1.4rem;
             font-weight: 700;
         }
-        .food-card {
+        .product-card {
             transition: transform .2s ease, box-shadow .2s ease;
         }
-        .food-card:hover {
+        .product-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 .5rem 1rem rgba(0,0,0,.12);
         }
-        .food-img {
+        .product-img {
             height: 180px;
             object-fit: cover;
         }
@@ -47,8 +47,8 @@ $isLoggedIn = isset($_SESSION["user_id"]);
 <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="index.php">
-            <img src="<?= BASE_URL ?>/assets/images/logo.png" alt="FoodieHub" height="40" class="me-2 rounded">
-            <!-- FoodieHub -->
+            <img src="<?= BASE_URL ?>/assets/images/logo.svg" alt="ProductHub" height="40" class="me-2 rounded">
+            <!-- ProductHub -->
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -57,7 +57,7 @@ $isLoggedIn = isset($_SESSION["user_id"]);
             <ul class="navbar-nav ms-auto align-items-lg-center">
 
                 <li class="nav-item">
-                    <a class="nav-link" href="index.php">Menu</a>
+                    <a class="nav-link" href="index.php">Products</a>
                 </li>
 
                 <?php if ($isLoggedIn): ?>

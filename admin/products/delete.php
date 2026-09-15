@@ -11,7 +11,7 @@ $id = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
 $csrfToken = $_POST["csrf_token"] ?? null;
 
 if (!$id) {
-    $_SESSION["error"] = "Invalid food ID.";
+    $_SESSION["error"] = "Invalid product ID.";
     header("Location: index.php");
     exit;
 }
@@ -36,7 +36,7 @@ try {
     $food = $foodStatement->fetch(PDO::FETCH_ASSOC);
 
     if (!$food) {
-        $_SESSION["error"] = "Food item not found.";
+        $_SESSION["error"] = "Product not found.";
         header("Location: index.php");
         exit;
     }
@@ -46,14 +46,14 @@ try {
 
     // Remove the associated image file
     if ($food["image"] !== null) {
-        $uploadDirectory = __DIR__ . "/../../uploads/foods/";
+        $uploadDirectory = __DIR__ . "/../../uploads/products/";
 
         if (is_file($uploadDirectory . $food["image"])) {
             unlink($uploadDirectory . $food["image"]);
         }
     }
 
-    $_SESSION["success"] = "Food item deleted successfully.";
+    $_SESSION["success"] = "Product deleted successfully.";
 
     header("Location: index.php");
     exit;
@@ -62,7 +62,7 @@ try {
 
     error_log($exception->getMessage());
 
-    $_SESSION["error"] = "Unable to delete food item. Please try again.";
+    $_SESSION["error"] = "Unable to delete product. Please try again.";
 
     header("Location: index.php");
     exit;

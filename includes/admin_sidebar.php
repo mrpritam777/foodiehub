@@ -12,7 +12,7 @@ $base = BASE_URL;
     <div class="text-center py-4">
 
         <a href="<?= $base ?>/admin/dashboard.php">
-            <img src="<?= $base ?>/assets/images/logo.png" alt="FoodieHub" class="sidebar-logo">
+            <img src="<?= $base ?>/assets/images/logo.svg" alt="ProductHub" class="sidebar-logo">
         </a>
 
     </div>
@@ -27,9 +27,9 @@ $base = BASE_URL;
         Categories
     </a>
 
-    <a href="<?= $base ?>/admin/foods/index.php" class="<?= $activePage === "foods" ? "active" : "" ?>">
-        <i class="fa fa-burger"></i>
-        Foods
+    <a href="<?= $base ?>/admin/products/index.php" class="<?= $activePage === "products" ? "active" : "" ?>">
+        <i class="fa fa-box"></i>
+        Products
     </a>
 
     <a href="<?= $base ?>/admin/orders/index.php" class="<?= $activePage === "orders" ? "active" : "" ?>">

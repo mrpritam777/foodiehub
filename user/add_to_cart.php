@@ -23,15 +23,27 @@ if (!$foodId || !$quantity || $quantity < 1 || $quantity > 99) {
 
 try {
 
-    // Food must exist and be available
+    // Food must exist, be available and have enough stock
     $foodStatement = $conn->prepare(
-        "SELECT id FROM foods WHERE id = :id AND status = 'Available' LIMIT 1"
+        "SELECT id, food_name, stock
+         FROM foods
+         WHERE id = :id AND status = 'Available'
+         LIMIT 1"
     );
 
     $foodStatement->execute([":id" => $foodId]);
 
-    if (!$foodStatement->fetch(PDO::FETCH_ASSOC)) {
-        $_SESSION["flash"] = "Food item not available.";
+    $food = $foodStatement->fetch(PDO::FETCH_ASSOC);
+
+    if (!$food) {
+        $_SESSION["error"] = "Product not available.";
+        header("Location: index.php");
+        exit;
+    }
+
+    // Low stock check: no order when the product is out of stock
+    if ((int) $food["stock"] < 1) {
+        $_SESSION["error"] = "Sorry, \"" . $food["food_name"] . "\" is out of stock.";
         header("Location: index.php");
         exit;
     }
@@ -48,8 +60,16 @@ try {
 
     $existing = $existingStatement->fetch(PDO::FETCH_ASSOC);
 
+    $maxQuantity = min((int) $food["stock"], 99);
+
     if ($existing) {
-        $newQuantity = min((int) $existing["quantity"] + $quantity, 99);
+        $newQuantity = (int) $existing["quantity"] + $quantity;
+
+        if ($newQuantity > $maxQuantity) {
+            $_SESSION["error"] = "Only " . (int) $food["stock"] . " unit(s) of \"" . $food["food_name"] . "\" are in stock.";
+            header("Location: cart.php");
+            exit;
+        }
 
         $updateStatement = $conn->prepare(
             "UPDATE cart SET quantity = :quantity WHERE id = :id"
@@ -60,6 +80,13 @@ try {
             ":id" => (int) $existing["id"]
         ]);
     } else {
+
+        if ($quantity > $maxQuantity) {
+            $_SESSION["error"] = "Only " . (int) $food["stock"] . " unit(s) of \"" . $food["food_name"] . "\" are in stock.";
+            header("Location: index.php");
+            exit;
+        }
+
         $insertStatement = $conn->prepare(
             "INSERT INTO cart (user_id, food_id, quantity) VALUES (:user_id, :food_id, :quantity)"
         );

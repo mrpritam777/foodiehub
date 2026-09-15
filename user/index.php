@@ -24,6 +24,7 @@ $sql = "
         foods.description,
         foods.image,
         foods.status,
+        foods.stock,
         categories.category_name
     FROM foods
     INNER JOIN categories ON categories.id = foods.category_id
@@ -84,9 +85,9 @@ unset($_SESSION["flash"]);
 
         <div class="col-lg-8 col-md-7">
 
-            <h2 class="mb-1">Our Menu</h2>
+            <h2 class="mb-1">Our Products</h2>
 
-            <p class="text-muted mb-0">Fresh, delicious food delivered to your door.</p>
+            <p class="text-muted mb-0">Browse and order your favorite products online.</p>
 
         </div>
 
@@ -100,7 +101,7 @@ unset($_SESSION["flash"]);
                         type="text"
                         name="search"
                         class="form-control"
-                        placeholder="Search food..."
+                        placeholder="Search products..."
                         value="<?= htmlspecialchars($search) ?>"
                     >
 
@@ -179,19 +180,19 @@ unset($_SESSION["flash"]);
 
                 <div class="col-sm-6 col-lg-4 col-xl-3">
 
-                    <div class="card food-card h-100 shadow-sm">
+                    <div class="card product-card h-100 shadow-sm">
 
                         <?php if (!empty($food["image"])): ?>
 
                             <img
-                                src="../uploads/foods/<?= htmlspecialchars($food["image"]) ?>"
+                                src="../uploads/products/<?= htmlspecialchars($food["image"]) ?>"
                                 alt="<?= htmlspecialchars($food["food_name"]) ?>"
-                                class="card-img-top food-img"
+                                class="card-img-top product-img"
                             >
 
                         <?php else: ?>
 
-                            <div class="food-img bg-light d-flex align-items-center justify-content-center">
+                            <div class="product-img bg-light d-flex align-items-center justify-content-center">
                                 <i class="fa-solid fa-burger fa-3x text-muted"></i>
                             </div>
 
@@ -213,32 +214,62 @@ unset($_SESSION["flash"]);
                                 <?= htmlspecialchars(mb_strimwidth($food["description"] ?? "No description available.", 0, 90, "...")) ?>
                             </p>
 
+                            <?php if ((int) $food["stock"] < 1): ?>
+
+                                <span class="badge text-bg-danger mb-2 align-self-start">
+                                    <i class="fa-solid fa-box-open me-1"></i>Out of Stock
+                                </span>
+
+                            <?php elseif ((int) $food["stock"] <= 5): ?>
+
+                                <span class="badge text-bg-warning mb-2 align-self-start">
+                                    <i class="fa-solid fa-box me-1"></i>Only <?= (int) $food["stock"] ?> left in stock
+                                </span>
+
+                            <?php else: ?>
+
+                                <small class="text-success mb-2">
+                                    <i class="fa-solid fa-box me-1"></i>In stock: <?= (int) $food["stock"] ?>
+                                </small>
+
+                            <?php endif; ?>
+
                             <?php if ($isLoggedIn): ?>
 
-                                <form action="add_to_cart.php" method="POST">
+                                <?php if ((int) $food["stock"] > 0): ?>
 
-                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generateCsrfToken()) ?>">
+                                    <form action="add_to_cart.php" method="POST">
 
-                                    <input type="hidden" name="food_id" value="<?= (int) $food["id"] ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generateCsrfToken()) ?>">
 
-                                    <div class="d-flex gap-2">
+                                        <input type="hidden" name="food_id" value="<?= (int) $food["id"] ?>">
 
-                                        <input
-                                            type="number"
-                                            name="quantity"
-                                            class="form-control form-control-sm qty-input"
-                                            value="1"
-                                            min="1"
-                                            max="99"
-                                        >
+                                        <div class="d-flex gap-2">
 
-                                        <button type="submit" class="btn btn-danger btn-sm flex-grow-1">
-                                            <i class="fa-solid fa-cart-plus me-1"></i>Add
-                                        </button>
+                                            <input
+                                                type="number"
+                                                name="quantity"
+                                                class="form-control form-control-sm qty-input"
+                                                value="1"
+                                                min="1"
+                                                max="<?= (int) $food["stock"] ?>"
+                                            >
 
-                                    </div>
+                                            <button type="submit" class="btn btn-danger btn-sm flex-grow-1">
+                                                <i class="fa-solid fa-cart-plus me-1"></i>Add
+                                            </button>
 
-                                </form>
+                                        </div>
+
+                                    </form>
+
+                                <?php else: ?>
+
+                                    <button type="button" class="btn btn-secondary btn-sm" disabled>
+                                        <i class="fa-solid fa-ban me-1"></i>Order Not Available
+                                    </button>
+
+                                <?php endif; ?>
 
                             <?php else: ?>
 
@@ -264,9 +295,9 @@ unset($_SESSION["flash"]);
 
             <div class="card-body text-center py-5">
 
-                <i class="fa-solid fa-burger fa-3x text-muted mb-3"></i>
+                <i class="fa-solid fa-box-open fa-3x text-muted mb-3"></i>
 
-                <h5>No food items found</h5>
+                <h5>No products found</h5>
 
                 <p class="text-muted">Try a different search or category.</p>
 

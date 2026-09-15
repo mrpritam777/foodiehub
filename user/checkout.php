@@ -19,7 +19,8 @@ $stmt = $conn->prepare(
          foods.id     AS food_id,
          foods.food_name,
          foods.price,
-         foods.status
+         foods.status,
+         foods.stock
      FROM cart
      INNER JOIN foods ON foods.id = cart.food_id
      WHERE cart.user_id = :user_id
@@ -32,11 +33,18 @@ $cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $totalAmount = 0.0;
 $hasUnavailable = false;
+$hasStockIssue = false;
 
 foreach ($cartItems as $item) {
     if ($item["status"] !== "Available") {
         $hasUnavailable = true;
     }
+
+    // Stock check: the order will not be placed without enough stock
+    if ($item["status"] === "Available" && ((int) $item["stock"] < 1 || (int) $item["quantity"] > (int) $item["stock"])) {
+        $hasStockIssue = true;
+    }
+
     $totalAmount += (float) $item["price"] * (int) $item["quantity"];
 }
 
@@ -107,7 +115,20 @@ unset($_SESSION["checkout_old"]);
         <div class="alert alert-warning alert-dismissible fade show">
 
             <i class="fa-solid fa-triangle-exclamation me-1"></i>
-            Some items in your cart are currently unavailable. Please remove them before placing the order.
+            Some products in your cart are currently unavailable. Please remove them before placing the order.
+
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+        </div>
+
+    <?php endif; ?>
+
+    <?php if ($hasStockIssue): ?>
+
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="fa-solid fa-box-open me-1"></i>
+            Not enough stock for some products in your cart. The order cannot be placed — please reduce the quantity or check back after the stock is refilled.
 
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
@@ -312,7 +333,7 @@ unset($_SESSION["checkout_old"]);
 
                             <thead class="table-light">
                                 <tr>
-                                    <th>Food</th>
+                                    <th>Product</th>
                                     <th>Price</th>
                                     <th>Qty</th>
                                     <th class="text-end">Total</th>
@@ -330,6 +351,10 @@ unset($_SESSION["checkout_old"]);
 
                                             <?php if ($item["status"] !== "Available"): ?>
                                                 <span class="badge text-bg-warning ms-1">Unavailable</span>
+                                            <?php elseif ((int) $item["stock"] < 1): ?>
+                                                <span class="badge text-bg-danger ms-1">Out of Stock</span>
+                                            <?php elseif ((int) $item["quantity"] > (int) $item["stock"]): ?>
+                                                <span class="badge text-bg-warning ms-1">Only <?= (int) $item["stock"] ?> in stock</span>
                                             <?php endif; ?>
                                         </td>
 
@@ -381,10 +406,17 @@ unset($_SESSION["checkout_old"]);
                         type="submit"
                         form="checkout-form"
                         class="btn btn-danger w-100 mb-2"
-                        <?= $hasUnavailable ? "disabled" : "" ?>
+                        <?= ($hasUnavailable || $hasStockIssue) ? "disabled" : "" ?>
                     >
                         <i class="fa-solid fa-check me-1"></i>Place Order
                     </button>
+
+                    <?php if ($hasStockIssue): ?>
+                        <small class="text-danger d-block mb-2">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i>
+                            Order blocked: requested quantity exceeds the available stock.
+                        </small>
+                    <?php endif; ?>
 
                     <small class="text-muted">
                         By placing the order you agree to pay the total amount on delivery.

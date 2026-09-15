@@ -93,7 +93,7 @@ unset($_SESSION["success"]);
                 <div>
                     <h3 class="mb-1">Sales Report</h3>
                     <p class="text-muted mb-0">
-                        Track sales, orders and top-selling food items.
+                        Track sales, orders and top-selling products.
                     </p>
                 </div>
 
@@ -259,7 +259,7 @@ unset($_SESSION["success"]);
                     <div class="card shadow-sm h-100">
 
                         <div class="card-header bg-white">
-                            <h5 class="mb-0">Top Selling Foods</h5>
+                            <h5 class="mb-0">Top Selling Products</h5>
                         </div>
 
                         <div class="card-body p-0">
@@ -268,7 +268,7 @@ unset($_SESSION["success"]);
 
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Food</th>
+                                        <th>Product</th>
                                         <th class="text-center">Qty Sold</th>
                                         <th class="text-end">Revenue</th>
                                     </tr>

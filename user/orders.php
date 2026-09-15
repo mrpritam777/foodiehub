@@ -43,7 +43,7 @@ unset($_SESSION["flash"]);
         <h2 class="mb-0">My Orders</h2>
 
         <a href="index.php" class="btn btn-outline-danger">
-            <i class="fa-solid fa-burger me-1"></i>Order More
+            <i class="fa-solid fa-box me-1"></i>Order More
         </a>
 
     </div>
@@ -133,7 +133,7 @@ unset($_SESSION["flash"]);
 
                 <p class="text-muted">When you place an order it will appear here.</p>
 
-                <a href="index.php" class="btn btn-danger">Browse Menu</a>
+                <a href="index.php" class="btn btn-danger">Browse Products</a>
 
             </div>
 
